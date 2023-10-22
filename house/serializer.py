@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User,House,Room,Device
+from .models import User,House,Room,Device,Sensor
 
 class deviceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,6 +20,11 @@ class userSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         fields=["id","user_name","password","full_name","phone_number",]
+
+class sensorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sensor
+        fields = ["id", "sensor_id", "sensor_name", "value", "unit", "time", ]
 
 class change_status_device(serializers.Serializer):
     user_name = serializers.CharField(max_length=100)
@@ -67,3 +72,19 @@ class create_account_request(serializers.Serializer):
     full_name = serializers.CharField(max_length=100)
     phone_number = serializers.CharField(max_length=100)
 
+
+class add_value_sensor_request(serializers.Serializer):
+    sensor_id = serializers.CharField(max_length=100)
+    house_id = serializers.CharField(max_length=100)
+    sensor_name = serializers.CharField(max_length=100)
+    unit = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+
+
+class get_data_sensor_request(serializers.Serializer):
+    house_id = serializers.CharField(max_length=100)
+
+class get_data_sensor_date_request(serializers.Serializer):
+    house_id = serializers.CharField(max_length=100)
+    sensor_id = serializers.CharField(max_length=100)
+    date = serializers.CharField(max_length=100)
