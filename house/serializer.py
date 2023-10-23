@@ -27,9 +27,8 @@ class sensorSerializer(serializers.ModelSerializer):
         fields = ["id", "sensor_id", "sensor_name", "value", "unit", "time", ]
 
 class change_status_device(serializers.Serializer):
-    user_name = serializers.CharField(max_length=100)
     device_id = serializers.CharField(max_length=100)
-    status=serializers.CharField(max_length=100)
+    status=serializers.BooleanField(default=True)
 
 class get_devices(serializers.Serializer):
     user_name = serializers.CharField(max_length=100)

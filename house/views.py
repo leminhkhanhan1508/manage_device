@@ -289,7 +289,7 @@ class changeStatusDevice(APIView):
         }
         response_False = {
             "code": "01",
-            "massage": "Thông tin không hợp lệ"
+            "massage": "Thất bại"
         }
 
         response_error = {
@@ -301,37 +301,46 @@ class changeStatusDevice(APIView):
         if not mdata.is_valid():
             return Response(response_error, status=status.HTTP_404_NOT_FOUND)
         # gán dữ liêu
-        userName = mdata.data['user_name']
+        # userName = mdata.data['user_name']
         device_id = mdata.data['device_id']
         mStatus = mdata.data['status']
-        user = User.objects.filter(user_name=userName).first()
-        device = Device.objects.filter(id=int(device_id)).first()
-        if user is None:
+        # user = User.objects.filter(user_name=userName).first()
+        house = House.objects.filter(id=int(device_id)).first()
+        # if user is None:
+        #     return Response(response_False, status=status.HTTP_404_NOT_FOUND)
+        if house is None:
             return Response(response_False, status=status.HTTP_404_NOT_FOUND)
-        if device is None:
-            return Response(response_False, status=status.HTTP_404_NOT_FOUND)
-        # status on or off use to control device in house
-        # if(turn_off_device(device_ip="<ESP32_IP_ADDRESS>")==200):
-        #     device.status=mStatus
-        #     device.save()
-        #     return Response(response_True,status=status.HTTP_200_OK)
+        esp32_ip = "192.168.1.26"
+        status_code = 200
+        # if mStatus:
+        #     status_code = turn_on_device(esp32_ip)
+        # else:
+        #     status_code = turn_off_device(esp32_ip)
+        if status_code == 200:
+            house.status = mStatus
+            house.save()
+            return Response(response_True, status=status.HTTP_200_OK)
+        else:
+            print("Failed to device")
+            return Response(response_False, status=status.HTTP_200_OK)
 
-        return Response(response_error, status=status.HTTP_200_OK)
 
-
-def turn_off_device(device_ip):
-    # Send HTTP request to ESP32 to turn off the device
-    url = 'http://${device_ip}/turn-off'
-    response = requests.get(url)
-
+def turn_off_device(esp32_ip):
+    response = requests.get(f"http://{esp32_ip}/off")
+    if response.status_code == 200:
+        print("Device turned off")
+    else:
+        print("Failed to turn off device")
     # Check if the command was successful
     return response.status_code
 
 
-def turn_on_device():
-    # Send HTTP request to ESP32 to turn off the device
-    url = 'http://<ESP32_IP_ADDRESS>/turn-on'
-    response = requests.get(url)
+def turn_on_device(esp32_ip):
+    response = requests.get(f"http://{esp32_ip}/on")
+    if response.status_code == 200:
+        print("Device turned on")
+    else:
+        print("Failed to turn on device")
 
     # Check if the command was successful
     return response.status_code
@@ -412,6 +421,7 @@ class getListSensor(APIView):
         sensorList = sensorSerializer(final_sensor_values, many=True)
         response_True = {
             "code": "00",
+            "status": house.status,
             "sensor_list": sensorList.data
         }
         return Response(response_True, status=status.HTTP_200_OK)
@@ -441,18 +451,10 @@ class getListSensorOfDate(APIView):
         house = House.objects.filter(id=int(house_id)).first()
         if house is None:
             return Response(response_False, status=status.HTTP_404_NOT_FOUND)
-        date_format = "%d/%m/%Y"
-        try:
-            date = datetime.strptime(date_string, date_format)
-            print(date)
-        except ValueError:
-            print("Invalid date format")
-        sensor = Sensor.objects.filter(house=house,sensor_id = sensor_id)
-        data_of_date = sensor.filter(time__date=date_string)
-
+        sensor = Sensor.objects.filter(house=house, sensor_id=sensor_id, time__contains=date_string)
         sensorList = sensorSerializer(sensor, many=True)
         response_True = {
             "code": "00",
-            "sensor_list": data_of_date.data
+            "sensor_list": sensorList.data
         }
         return Response(response_True, status=status.HTTP_200_OK)

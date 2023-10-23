@@ -18,6 +18,7 @@ class House(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE,default=0)
   house_name = models.CharField(max_length=255)
   address = models.CharField(max_length=255)
+  status = models.BooleanField(max_length=255,default=True)
 
 class Room(models.Model):
   house=models.ForeignKey(House,on_delete=models.CASCADE,default=0)
